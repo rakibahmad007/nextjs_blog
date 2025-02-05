@@ -1,6 +1,8 @@
 import "./globals.css";
 import Link from "next/link";
 import {Poppins} from "next/font/google"
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 // export const metadata = {
 //   title: "Create Next App",
@@ -20,25 +22,11 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${poppins.variable} font-sans`} >
         <header>
-          <nav>
-            <Link className="nav-link" href="/">
-              Homepage
-            </Link>
-
-            <div>
-              <Link className="nav-link" href="/register">
-                Register
-              </Link>
-
-              <Link className="nav-link" href="/dashboard">
-                Dashboard
-              </Link>
-            </div>
-          </nav>
+          <Navigation/>
         </header>
         <main>{children}</main>
 
-        <footer>Footer</footer>
+       <Footer/>
       </body>
     </html>
   );
