@@ -1,27 +1,54 @@
 "use server";
 
+import bcrypt from "bcrypt";
+
+import { getCollection } from "@/lib/db";
 import { RegisterFormSchema } from "@/lib/rules";
+import { redirect } from "next/navigation";
 
 export async function register(state, formData) {
+  // await new Promise((resolve) => setTimeout(resolve,3000))
+  const validatedFields = RegisterFormSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
 
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      email: formData.get("email"),
+    };
+  }
 
-    // await new Promise((resolve) => setTimeout(resolve,3000))
-    const validatedFields = RegisterFormSchema.safeParse(
-        {
-            email: formData.get("email"),
-            password: formData.get("password"),
-            confirmPassword: formData.get("confirmPassword"),
-        }
-    )
+  //extract form fields
+  const { email, password } = validatedFields.data;
 
+  // Check if email is already registered
+  const userCollection = await getCollection("users");
+  if (!userCollection) return { errors: { email: "Server error!" } };
 
-   if(!validatedFields.success){
-        return{
-            errors: validatedFields.error.flatten().fieldErrors,
-            email: formData.get("email"),
-        };
-        
-   }
+  const existingUser = await userCollection.findOne({ email });
+  if (existingUser) {
+    return {
+      errors: {
+        email: "Email already exists in our database!",
+      },
+    };
+  }
 
-   console.log(validatedFields);
+  //Hash the password using bcrypt
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  //Save in DB
+  const results = await userCollection.insertOne({
+    email,
+    password: hashedPassword,
+  });
+
+  //Create a session
+
+  //Redirect
+  redirect('/dashboard');
 }
